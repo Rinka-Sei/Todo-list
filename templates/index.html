@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Todo-list Rinka</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        button {
+            margin-left: 5px;
+        }
+
+        span {
+            flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .done {
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body>
+    <h1>Todos</h1>
+    <ul>
+        {% for todo in todos %}
+            <li>
+                <input type="checkbox" name="done" {% if todo['done'] %}checked{% endif %} onchange="toggleLineThrough(this, {{ loop.index0 }})">
+                <span class="{% if todo['done'] %}done{% endif %}">{{ todo['task'] }}</span>
+
+                <form action="{{ url_for('check', index=loop.index0) }}" method="get">
+                    <button type="submit">Check</button>
+                </form>
+
+                <form action="{{ url_for('edit', index=loop.index0) }}" method="get">
+                    <button type="submit">Edit</button>
+                </form>
+
+                <form action="{{ url_for('delete', index=loop.index0) }}" method="get">
+                    <button type="submit">Delete</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+    <form action="{{ url_for('add') }}" method="post">
+        <input type="text" name="todo">
+        <button type="submit">Add Todo</button>
+    </form>
+
+    <script>
+        function toggleLineThrough(checkbox, index) {
+            const span = checkbox.nextElementSibling;
+            span.classList.toggle('done', checkbox.checked);
+
+            // Send a request to the server to update the 'done' state
+            fetch(`/check/${index}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => console.log(data))
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
